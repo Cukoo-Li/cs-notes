@@ -1,3 +1,3 @@
 # CS-Note
-These are my personal notse while studying computer science.
-Unfinished, continuously updated.
+个人学习笔记
+持续更新~
