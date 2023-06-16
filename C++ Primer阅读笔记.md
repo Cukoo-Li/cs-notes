@@ -399,15 +399,15 @@ vector<vector<string>> file;  // 该vector的元素是vector<string>类型的对
 
 ##### 定义和初始化vector对象
 
-| 定义语句                  | 说明                                                    |
-| ------------------------- | ------------------------------------------------------- |
-| vector<T> v1              | v1是一个空vector，它的潜在元素是T类型的，执行默认初始化 |
-| vector<T> v2(v1)          | v2中包含有v1所有元素的副本                              |
-| vector<T> v2 = v1         | 同上                                                    |
-| vector<T> v3(n, val)      | v3包含了n个重复的元素，每个元素的值都是val              |
-| vector<T> v4(n)           | v4包含了n个重复的元素，每个元素执行默认初始化           |
-| vector<T> v5{a,b,c...}    | v5包含了初始值个数的元素，每个元素被赋予相应的初始值    |
-| vector<T> v5 = {a,b,c...} | 同上                                                    |
+| 定义语句                   | 说明                                                    |
+| -------------------------- | ------------------------------------------------------- |
+| vector\<T> v1              | v1是一个空vector，它的潜在元素是T类型的，执行默认初始化 |
+| vector\<T> v2(v1)          | v2中包含有v1所有元素的副本                              |
+| vector\<T> v2 = v1         | 同上                                                    |
+| vector\<T> v3(n, val)      | v3包含了n个重复的元素，每个元素的值都是val              |
+| vector\<T> v4(n)           | v4包含了n个重复的元素，每个元素执行默认初始化           |
+| vector\<T> v5{a,b,c...}    | v5包含了初始值个数的元素，每个元素被赋予相应的初始值    |
+| vector\<T> v5 = {a,b,c...} | 同上                                                    |
 
 ##### vector对象上的操作
 
@@ -695,7 +695,7 @@ someValue ? ++x, ++y : --x, --y;
 
 ##### 显式转换
 
-- 形式：cast-name<type>(expression)
+- 形式：cast-name\<type>(expression)
 - cast-name是static_cast、dynamic_cast、const_cast和reinterpret_cast中的一种，指定了执行的是哪种转换
   - static_cast：任何具有明确定义的类型转换，只要不包含底层const，都可以使用static_cast
   - const_cast：只能改变运算对象的底层const
@@ -1921,6 +1921,75 @@ IO库类型和头文件：
 ##### iostream迭代器
 
 虽然iostream类型不是容器，但标准库定义了可以用于这些IO类型对象的迭代器。这些迭代器将它们对应的流当作一个特定类型的元素序列来处理。通过流迭代器，我们可以使用泛型算法从流对象读取数据以及向其写入数据。
+
+1. istream_iterator操作
+
+   ```cpp
+   // 使用istream_iterator从标准输入读取数据，存入一个vector
+   istream_iterator<int> in_inter(cin);
+   istream_iterator<int> eof;
+   while (in_iter != eof)
+       vec.push_back(*in_iter++);
+   // 可以将上述程序重写为如下形式，这体现了istream_iterator更有用的地方
+   istream_iterator<int> in_iter(cin), eof;
+   vector<int> vec(in_iter, eof);
+   ```
+
+   | istream_iterator操作         | 说明                                                         |
+   | ---------------------------- | ------------------------------------------------------------ |
+   | istream_iterator\<T> in(is); | in从输入流is读取类型T的值                                    |
+   | istream_iterator\<T> end;    | 表示尾后位置                                                 |
+   | in1 == in2, in1 != in2       | in1和in2必须读取相同类型。如果它们都是尾后迭代器，或绑定到相同的输入，则两者相等 |
+   | *in                          | 返回从流中读取的值                                           |
+   | in->mem                      | 等价于(*in).mem                                              |
+   | ++in, in++                   | 使用元素类型所定义的>>运算符从输入流中读取下一个值           |
+
+   当我们将一个istream_interator绑定到一个流时，标准库并不保证迭代器立即从流读取数据。具体实现可以推迟从流中读取数据，直到我们使用迭代器时才真正读取。标准库中的实现所保证的是，在我们第一次解引用迭代器之前，从流中读取数据的操作已经完成了。
+
+2. ostream_iterator操作
+
+   | ostream_iterator操作              | 说明                                                         |
+   | --------------------------------- | ------------------------------------------------------------ |
+   | ostream_iterator\<T> out(os);     | out将类型为T的值写到输出流os中                               |
+   | ostream_iterator\<T> out(out, d); | out将类型为T的值写到输出流os中，每个值后面都输出一个C风格字符串d |
+   | out = val                         | 用<<运算符将val写到out所绑定的ostream中。val的类型必须于out可写的类型兼容 |
+   | *out, ++out, out++                | 这些运算符虽然存在，但不对out做任何事情，都返回out           |
+
+   ```cpp
+   // 使用ostream_iterator输出vecotr中的元素
+   ostream_iterator<int> out_iter(cout, " ");
+   for (auto e : vec)
+       *out_iter++ = e;
+   // *和++不对out_iter做任何事情，可以忽略，即，循环可以重写成下面的样子
+   for (auto e : vec)
+       out_iter = e;
+   // 推荐第一种写法，流迭代器的使用与其他迭代器的使用保持一致，方便修改，可读性强
+   
+   // 可以通过调用copy来打印vec中的元素，这比编写循环更为简单
+   copy(vec.begin(), vec.end(), out_iter);
+   ```
+
+##### 反向迭代器
+
+- 对于反向迭代器，递增（以及递减）操作的含义会颠倒过来
+
+- 除了forward_list之外，其他容器都支持反向迭代器
+
+- 可以通过调用rbegin、rend、crbegin、crend成员函数来获得反向迭代器
+
+- 虽然颠倒递增和递减运算符的含义可能看起来令人混淆，但这样做使我们可以用算法透明地向前或向后处理容器
+
+- 反向迭代器需要递减运算符。除了forward_list之外，标准容器上的其他迭代器都支持递减运算符。但是，流迭代器不支持递减运算符
+
+- reverse_iterator的base成员函数返回其对应的普通迭代器
+
+- 反向迭代器和普通迭代器间的关系：
+
+  ![image-20230616110646107](https://raw.githubusercontent.com/Cukoo-Li/typora-photos/main/2023/06/upgit_20230616_1686884807.png)
+
+  
+
+
 
 ### 关联容器
 
