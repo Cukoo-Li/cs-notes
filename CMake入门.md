@@ -210,9 +210,11 @@ add_executable(main xxx.cpp xxx.cpp ...)
 
 ## 实践 - 在VSCode中使用CMake
 
-1. 配置lauch.json和task.json
-2. 编写CMakeLists.txt
-3. 按F5进行运行/调试
+1. 关闭CMake Tools插件的自动配置功能
+2. 配置合理的项目结构(include, src, build)
+3. 配置lauch.json和task.json
+4. 编写CMakeLists.txt
+5. 按F5进行运行/调试
 
 ### launch.json
 
@@ -231,15 +233,15 @@ add_executable(main xxx.cpp xxx.cpp ...)
             "name": "debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}\\out\\${fileBasenameNoExtension}.exe",
-            // "program": "${fileDirname}\\build\\${fileBasenameNoExtension}.exe",
+            // "program": "${workspaceRoot}/out/${fileBasenameNoExtension}.exe",
+            "program": "${fileDirname}/build/${fileBasenameNoExtension}.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:\\mingw64\\bin\\gdb.exe",
+            "miDebuggerPath": "D:/mingw64/bin/gdb.exe",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",
@@ -252,8 +254,8 @@ add_executable(main xxx.cpp xxx.cpp ...)
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "g++"
-            // "preLaunchTask": "Build"
+            // "preLaunchTask": "g++"
+            "preLaunchTask": "Build"
         }
     ]
 }
@@ -271,13 +273,13 @@ add_executable(main xxx.cpp xxx.cpp ...)
         {
             "type": "cppbuild",
             "label": "g++",
-            "command": "D:\\mingw64\\bin\\g++.exe",
+            "command": "D:/mingw64/bin/g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
                 "-o",
-                "${workspaceRoot}\\out\\${fileBasenameNoExtension}.exe",
+                "${workspaceRoot}/out/${fileBasenameNoExtension}.exe",
                 // "-fexec-charset=GBK"  // 如果使用内置终端，就注销掉这行
             ],
             "options": {
@@ -297,17 +299,26 @@ add_executable(main xxx.cpp xxx.cpp ...)
             "label": "cmake",
             "command": "cmake",
             "args": [
+                "-G",
+                "Unix Makefiles",
                 ".."
-            ]
+            ],
+            "options": {
+                "cwd": "${fileDirname}/build"
+            }
         },
         {
+            "type": "shell",
             "label": "make",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "command": "make",
-            "args": []
+            "args": [],
+            "options": {
+                "cwd": "${fileDirname}/build"
+            }
         },
         {
             "label": "Build",
