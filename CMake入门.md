@@ -218,7 +218,7 @@ add_executable(main xxx.cpp xxx.cpp ...)
 
 ### launch.json
 
-- 保存VSCode运行配置信息
+- 调试器的配置文件
 - "program"指定可执行文件的路径
 - "preLaunchTask"指定运行调试前要执行的tasks.json中的任务
 
@@ -263,6 +263,7 @@ add_executable(main xxx.cpp xxx.cpp ...)
 
 ### tasks.json
 
+- 编译器的配置文件
 - 保存运行前要执行的任务的配置信息
 - "label"用于标记一个特定的任务
 
