@@ -128,7 +128,7 @@ ADD_EXECUTABLE(hello main.cpp ${HELLO})
 
   ```cmake
   # 在CMAKE_CXX_FLAGS编译选项后追加-std=c++11
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   ```
 
 - CMAKE_BUILD_TYPE - 编译类型(Debug|Release)
@@ -163,7 +163,7 @@ ADD_EXECUTABLE(hello main.cpp ${HELLO})
 ### 编译流程
 
 1. 手动编写CMakeLists.txt
-2. 执行命令cmake PATH生成Makefile（PATH为顶层CMakeLists.txt所在目录）
+2. 执行命令cmake PATH在当前目录生成Makefile（PATH为顶层CMakeLists.txt所在目录）
 3. 执行命令make进行编译
 
 ### 两种构建方式
