@@ -461,7 +461,7 @@ auto c = v.end();  // 返回指向尾元素下一位置的迭代器，这样的�
 
 #### 数组
 
-- 与vetor类似，数组也是存放类型相同的对象的容器
+- 与vector类似，数组也是存放类型相同的对象的容器
 - 与vector不同的是，数组的大小不能改变，性能更好，但灵活性差
 
 ##### 定义和初始化内置数组
@@ -1191,9 +1191,9 @@ C++标准库定义了一组异常类，用于报告标准库函数遇到的问�
 - 静态成员函数也不与任何对象绑定在一起，它们不包含this指针，这意味着静态成员函数不能声明成const的
 - 在成员的声明之前加上关键字static即可将其指定为静态成员（static关键字只出现在类内部的声明语句中）
 - 静态成员的访问方式：①作用域运算符；②使用类的对象、引用或者指针
-- 一般来说，我们不能在类的内部初始化静态成员。相反的，必须在类的外部定义和初始化每个静态成员
+- 一般来说，我们不能在类的内部初始化静态数据成员。相反的，必须在类的外部定义和初始化每个静态数据成员
 - 类似于全局变量，静态数据成员定义在任何函数之外。因此它一旦被定义，就将一直存在于程序的整个生命周期中
-- 通常情况下，类的静态成员不应该在类的内部初始化。然而，我们可以为静态成员提供const整数类型的类内初始值，不过要求静态成员必须是字面值常量类型的constexpr。此时，在类的外部定义该成员时，不能再指定一个初始值了
+- 通常情况下，类的静态数据成员不应该在类的内部初始化。然而，我们可以为静态数据成员提供const整数类型的类内初始值，不过要求静态数据成员必须是字面值常量类型的constexpr。此时，在类的外部定义该成员时，不能再指定一个初始值了
 
 ## C++标准库
 
@@ -2756,11 +2756,14 @@ C++11支持移动而非拷贝对象，在某些情况下，这会大幅度提升
 
 #### 定义模版
 
+- 模板定义以关键字template开始，后跟一个模板参数列表，这是一个逗号分隔的一个或多个模板参数的列表，用<>包围起来
+
+- 模板参数表示在类或函数定义中用到的类型和值。当使用模板时，我们（显式地或隐式地）指定模板实参，将其绑定到模板参数上
+
 ##### 函数模版
 
-- 一个函数模板就是一个公式，可以用来生成针对特定类型的函数版本
-- 模板定义以关键字template开始，后跟一个模板参数列表，这是一个逗号分隔的一个或多个模板参数的列表，用<>包围起来
-- 模板参数表示在类或函数定义中用到的类型和值。当使用模板时，我们（显式地或隐式地）指定模板实参，将其绑定到模板参数上
+- 当我们调用一个函数模板时，编译器（通常）用函数实参来为我们推断模板实参
+
 - 模板参数分为类型参数和非类型参数：
   - 类型参数
     - 一般来说，可以将类型参数看作类型说明符，就像内置类型或类类型说明符一样使用
@@ -2768,13 +2771,132 @@ C++11支持移动而非拷贝对象，在某些情况下，这会大幅度提升
   - 非类型参数
     - 一个非类型参数表示一个值而非一个类型，我们通过一个特定的类型名而非关键字class或typename来指定非类型参数
     - 当一个模板被实例化时，非类型参数被一个用户提供的或编译器推断出的值所代替，这些值必须是常量表达式
+    - 一个非类型参数可以是一个整型，或者是一个指向对象或函数类型的指针或（左值）引用
+    - 绑定到整型非类型参数的实参必须是一个常量表达式
+    - 绑定到指针或引用非类型参数的实参必须具有静态的生存期
 
-```cpp
-template <typename T>
-int compare(const T &v1, const T &v2) {
-    /* 函数体 */
-}
-```
+  ```cpp
+  template <typename T, unsigned size>
+  T* begin_def(T (&arr)[size]) {
+      return arr;
+  }
+  
+  template <typename T, unsigned size>
+  T* end_def(T (&arr)[size]) {
+      return arr + size;
+  }
+  ```
+
+- 编写泛型代码的两个重要原则
+
+  - 模板中的函数参数是const的引用
+  - 函数体中的条件判断仅使用<比较运算
+
+- 为了生成一个实例化版本，编译器需要掌握函数模板或类模板成员函数的定义，因此模板的头文件通常既包括声明也包括定义
+
+##### 类模板
+
+- 与函数模板不同的是，编译器不能为类模板推断模板参数类型，我们必须在类模板名后的尖括号提供显式模板实参列表
+
+- 定义在类模板之外的成员函数必须以关键字template开始，后接类模板参数列表
+
+- 成员函数只有在被用到时才进行实例化，这一特性即使某种类型不能完全符合模板操作的要求，我们仍然能用该类型实例化类
+
+- 当我们使用一个类模板类型时必须提供模板实参。但在类模板的作用域中，我们可以直接使用模板名而不必指定模板实参
+
+  ```cpp
+  template <typename T>
+  class Blob {
+     public:
+      typedef T value_type;
+      typedef typename std::vector<T>::size_type size_type;
+      // 构造函数
+      Blob();
+      Blob(std::initializer_list<T> il);
+      // 元素数目
+      size_type size() const { return data->size(); }
+      bool empty() const { return data->empty(); }
+      // 添加和删除元素
+      void push_back(const T &t) { data->push_back(t); }
+      void push_back(T &&t) { data->push_back(std::move(t)); }
+      void pop_back();
+      // 元素访问
+      T& back();
+      T& operator[](size_type i);
+     private:
+      std::shared_ptr<std::vector<T>> data;
+      // 若data[i]无效，则抛出msg
+      void check(size_type i, const std::string &msg) const;
+  };
+  
+  template <typename T>
+  Blob<T>::Blob() : data(std::make_shared<std::vector<T>>()) { }
+  
+  template <typename T>
+  void Blob<T>::check(size_type i, const std::string &msg) const {
+      if (i >= data-> size())
+          throw std::out_of_range(msg);
+  }
+  ```
+
+- 一个类可以将另一个模板的每个实例都声明为自己的友元，也可以指定特定的实例为友元
+
+  ```cpp
+  // 前置声明，在将模板的一个特定实例声明为友元时要用到
+  template <typename T> class Pal;
+  
+  class C {	// C是一个普通的非模板类
+      friend class Pal<C>;	// 用类C实例化的Pal是C的一个友元
+      // Pal2的所有实例都是C的友元，无须前置声明
+      template <typename T> friend class Pal2;
+  };
+  
+  template <typename T>
+  class C2 {	// C2本身是一个类模板
+      friend class Pal<T>;	// C2的每个实例将相同实例化的Pal声明为友元
+      // Pal2的所有实例都是C的友元，无须前置声明
+      template <typename X> friend class Pal2;	// 必须使用与类模板本身不同的模板参数
+      // Pal3是一个非模板类，它是C2所有实例的友元,无须前置声明
+      friend class Pal3;
+  }
+  ```
+
+- 在C++11中，可以将模板类型参数声明为友元（允许将内置类型声明为友元）
+
+  ```cpp
+  template <typename Type>
+  class Bar {
+      friend Type;	// 将访问权限授予用来实例化Bar的类型
+      // ...
+  }
+  ```
+
+- C++11允许我们为类模板定义一个类型别名：
+
+  ```cpp
+  template <typename T> using twin = pair<T, T>;
+  twin<string> authors;	// authors是一个pair<string, string>
+  template <typename T> using partNo = pair<T, unsigned>;
+  partNo<string> books;	// books是一个pair<string, unsigned>
+  ```
+
+- 类模板可以声明static成员
+
+  ```cpp
+  template <typename T>
+  class Foo {
+     public:
+  	static std::size_t count() { return ctr; }
+      // ...
+     private:
+      static std::size_t ctr;		// 静态数据成员在类内声明
+  }
+  
+  template <typename T>
+  std::size_t Foo<T>::ctr = 0;	// 在类外定义并初始化
+  ```
+
+  
 
 
 
