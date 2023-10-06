@@ -2985,6 +2985,44 @@ auto val = sum<long long>(i, lng);		// long long sum(int, long)
 
 ##### 尾置返回类型与类型转换
 
+当我们希望由用户来确定返回类型时，用显式模板实参表示模板函数的返回类型时很有效的。但在其他情况下，要求显式指定模板实参会给用户增添额外负担，而且不会带来什么好处。例如，我们可能希望编写一个函数，接受表示序列的一对迭代器和返回序列中一个元素的引用：
+
+```cpp
+template <typename It>
+??? &fcn(It beg, It end) {
+    // 处理序列
+    return *beg;	// 返回序列中一个元素的引用
+}
+```
+
+此时，我们并不知道返回结果的准确类型，但知道所需类型是所处理序列的元素类型，此时可以使用尾置返回类型。
+
+```cpp
+template <typename It>
+auto fcn(It beg, It end) -> decltype(*beg) {
+    // 处理序列
+    return *beg;	// 返回序列中一个元素的引用
+}
+```
+
+有时我们无法直接获得所需要的类型。例如，我们可能希望编写一个类似fcn的函数，但返回一个元素的值而非引用。
+
+在这种情况下，我们可以使用标准库的类型转换(type transformation)模板，这些模板定义在头文件type_traits中，这个头文件中的类通常用于所谓的模板元程序设计，这一主题已超出本书的范围。在本例中，我们可以使用remove_reference来获得元素类型。
+
+```cpp
+template <typename It>
+auto fcn(It beg, It end) -> typename remove_reference<decltype(*beg)>::type {
+    // 处理序列
+    return *beg;	// 返回序列中一个元素的引用
+}
+```
+
+![image-20231005170610322](https://raw.githubusercontent.com/Cukoo-Li/typora-photos/main/2023/10/upgit_20231005_1696496770.png)
+
+##### 函数指针和实参推断
+
+
+
 
 
 ## 高级主题
