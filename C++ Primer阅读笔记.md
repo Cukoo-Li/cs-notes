@@ -3021,6 +3021,26 @@ auto fcn(It beg, It end) -> typename remove_reference<decltype(*beg)>::type {
 
 ##### 函数指针和实参推断
 
+当我们用一个函数模板初始化一个函数指针或为一个函数指针赋值时，编译器使用指针的类型来推断模板实参。如果不能从函数指针类型确定模板实参，则产生错误。
+
+```cpp
+template <typename T>
+int compare(const T&, const T&);
+
+// pf指向实例int compare(const int&, const int&)
+int (*pf)(const int&, const int&) = compare;
+
+// func的重载版本，每个版本接受一个不同的函数指针类型
+void func(int(*)(const string&, const string&));
+void func(int(*)(const int&, const int&));
+func(compare);		// 错误：使用compare的哪个实例？
+
+// 正确：通过使用显式模板实参来消除func调用的歧义
+func(compare<int>);		// 传递compare(const int&, const int&)
+```
+
+##### 模板实参推断和引用
+
 
 
 
