@@ -3386,3 +3386,58 @@ noexcept有两层含义：noexcept说明符和noexcept运算符
 - 对于接受类类型实参的函数来说，其名字查找除了在常规的作用域查找外，还会查找实参类所属的命名空间
 
 #### 多重继承与虚继承
+
+### 特殊工具与技术
+
+#### 枚举类型
+
+枚举类型(enumeration)使我们可以将一组整型常量组织在一起，属于字面值常量类型。
+
+1. 枚举类型的定义
+
+   - C++包含两种枚举：限定作用域的(C++11)和不限定作用域的
+   - 枚举类型的名字是可选的。如果enum是未命名的，则只能在定义该enum时定义它的对象
+
+   ```cpp
+   // 限定作用域的：以enum class开头（或者等价地使用enum struct）
+   enum class open_modes {input, output, append};
+   // 不限定作用域的：省略掉class（或struct）
+   enum color {red, yellow, green};
+   ```
+
+2. 枚举成员
+
+   - 在限定作用域的枚举类型中，枚举成员的名字遵循常规的作用域准则
+   - 在限定的作用域的枚举类型中，枚举成员的名字的作用域与枚举类型本身的作用域相同
+   - 默认情况下，枚举值从0开始，依次加1。可以为枚举成员指定专门的值
+   - 枚举成员是const的，在初始化枚举成员时提供的初始值必须是常量表达式。换言之，每个枚举成员本身就是一条常量表达式
+
+   ```cpp
+   enum color {red, yellow, green};			// 不限定作用域的枚举类型
+   enum stoplight {red, yellow, green};		// 错误：重复定义枚举成员
+   enum class peppers {red, yellow, green};	// 正确：枚举成员被隐藏了
+   color eyes = green;							// 正确
+   peppers p = green;							// 错误：peppers的枚举成员不在有效的作用域中
+   peppers p2 = peppers::red;					// 正确
+   ```
+
+3. 额外说明
+
+   - 一个不限定作用域的枚举类型对象或枚举成员能够隐式转换成整型
+
+     ```cpp
+     int i = color::red;		// 正确
+     int j = peppers::red;	// 错误：限定作用域的枚举类型不会进行隐式转换
+     ```
+
+   - 在C++11中，可以指定在enum中使用某种整数类型。限定作用域的enum默认是int，不限定作用域的enum没有特定的默认类型
+
+     ```cpp
+     enum intValues : unsigned long long {
+         charTyp = 255, shortTyp = 65535, intTyp = 65535,
+         longTyp = 4294967295UL,
+         long_longTyp = 18446744073709551615ULL
+     };
+     ```
+
+   - 在C++11中，可以提前声明enum，前置声明必须（隐式地或显式地）指定其成员的整数类型
