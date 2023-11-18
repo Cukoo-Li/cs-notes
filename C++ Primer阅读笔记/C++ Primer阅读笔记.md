@@ -703,7 +703,7 @@ someValue ? ++x, ++y : --x, --y;
 - 在条件表达式中，非布尔值转换成布尔类型
 - 初始化过程中，初始值转换成变量的类型；在赋值语句中，右侧运算对象转换成左侧运算对象的类型
 - 如果算术运算或关系运算的运算对象有多种类型，需要转换成同一种类型
-- 对于运算对象为一个无符号类型和一个有符号类型的情形，如果无符号不小于带符号，则转成无符号；如果带符号大于无符号，且无符号类型的所有值都能存在该带符号类型中，则转成带符号，否则转成无符号
+- 对于运算对象为一个无符号类型和一个有符号类型的情形，如果无符号不小于有符号，则转成有符号；如果有符号大于无符号，且无符号类型的所有值都能存在该有符号类型中，则转成有符号，否则转成无符号
 - 一般来说，数组转换成指向数组首元素的指针。当数组被用于decltype、&、sizeof、typeid等时，没有上述转换
 
 ##### 显式转换
@@ -1692,7 +1692,7 @@ IO库类型和头文件：
 
   - 所有适配器都要求容器具有添加、删除以及访问尾元素的能力，因此不能用array和forward_list来构造适配器
   - stack只要求push_back、pop_back和back操作，因此可以使用deque、list或vector来构造
-  - queue要求back、push_back、front和push_front，因此可以使用list或deque来构造
+  - queue要求back、push_back、front和pop_front，因此可以使用list或deque来构造
   - priority_queue要求front、push_back、pop_back以及随机访问能力，因此可以使用vector或deque来构造
 
 1. 栈适配器(stack)
@@ -2386,16 +2386,16 @@ IO库类型和头文件：
 
 ##### unique_ptr
 
-| unique_ptr操作                                  | 说明                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| unique_ptr\<T> u                                | 空unique_ptr，会使用delete来释放它的指针                     |
-| unique_ptr\<T, D> u                             | 空unique_ptr，会使用一个类型为D的可调用对象来释放它的指针    |
-| unique_ptr\<T, D>  u(d)                         | 空unique_ptr，用类型为D的可调用对象d代替delete               |
-| unique_ptr\<T> u(q)                             | 用类型为T*的内置指针q初始化u                                 |
-| unique_ptr\<T, D> u(q, d)                       | 用类型为T*的内置指针q初始化u，用类型为D的可调用对象d代替delete |
-| u = nullptr                                     | 释放u指向的对象，将u置为空                                   |
-| u.realease()                                    | u放弃对对象的控制权，返回指针，并将u置为空（没有释放对象）   |
-| u.reset()<br />u.reset(q)<br />u.reset(nullptr) | 释放u指向的对象<br />如果提供了内置指针q，令u指向这个对象；否则，将u置为空 |
+| unique_ptr操作            | 说明                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| unique_ptr\<T> u          | 空unique_ptr，会使用delete来释放它的指针                     |
+| unique_ptr\<T, D> u       | 空unique_ptr，会使用一个类型为D的可调用对象来释放它的指针    |
+| unique_ptr\<T, D> u(d)    | 空unique_ptr，用类型为D的可调用对象d代替delete               |
+| unique_ptr\<T> u(q)       | 用类型为T*的内置指针q初始化u                                 |
+| unique_ptr\<T, D> u(q, d) | 用类型为T*的内置指针q初始化u，用类型为D的可调用对象d代替delete |
+| u = nullptr               | 释放u指向的对象，将u置为空                                   |
+| u.realease()              | u放弃对对象的控制权，返回指针，并将u置为空（没有释放对象）   |
+| u.reset()<br />u.reset(q) | 释放u指向的对象<br />如果提供了内置指针q，令u指向这个对象；否则，将u置为空 |
 
 - 一个unique_ptr“拥有”它所指的对象。当unique_ptr被销毁时，它所指的对象也被销毁
 
