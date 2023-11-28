@@ -311,10 +311,6 @@ add_executable(main xxx.cpp xxx.cpp ...)
         {
             "type": "shell",
             "label": "make",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
             "command": "make",
             "args": [],
             "options": {
