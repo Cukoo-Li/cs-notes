@@ -1830,7 +1830,7 @@ IO库类型和头文件：
 - lambda表达式形式如下：
 
   ```cpp
-  [capture list] (parameter list) -> return type { function body}
+  [capture list] (parameter list) -> return type { function body }
   auto f = [] { return 42; };
   cout << f() << endl;
   ```
@@ -2135,7 +2135,7 @@ IO库类型和头文件：
 #### 关联容器概述
 
 - 关联容器不支持顺序容器的位置相关的操作
-- 关联容器不支持构造函数或插入操作这些接受一个元素值和一个数量值的操作
+- 关联容器不支持构造函数或插入操作这些接受一个数量值和一个元素值的操作
 - 关联容器的迭代器都是双向的
 
 ##### 定义关联容器
