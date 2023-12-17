@@ -2573,7 +2573,7 @@ IO库类型和头文件：
 - 可以使用拷贝并交换(copy and swap)技术来定义赋值运算符，这是异常安全的，且能正确处理自赋值
 
   ```cpp
-  HasPtr& HasPtr::operator=(HasPtr rhs) {、
+  HasPtr& HasPtr::operator=(HasPtr rhs) {
       // 交换左侧运算对象和局部变量rhs的内容
       swap(*this, rhs);		// rhs现在指向本对象曾经使用的内存
       return *this;			// rhs被销毁，从而delete了rhs中的指针
