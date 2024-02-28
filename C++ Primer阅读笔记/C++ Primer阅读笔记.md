@@ -1568,9 +1568,9 @@ IO库类型和头文件：
 
 | 构造string的其他方法    | 说明                                                         |
 | ----------------------- | ------------------------------------------------------------ |
-| string s(cp, n)         | s是从cp指向的数组元素开始的前n个字符的拷贝                   |
+| string s(cp, len)       | s是从cp指向的char数组元素开始的len个字符的拷贝               |
 | string s(str, pos)      | s是str从下标pos开始的字符的拷贝。若pos>str.size()，抛出异常  |
-| string s(str, pos, len) | s是str从下标pos开始len个字符的拷贝。不管len的值是多少，构造函数至多拷贝到末尾 |
+| string s(str, pos, len) | s是str从下标pos开始的len个字符的拷贝。不管len的值是多少，构造函数至多拷贝到末尾 |
 
 - str是string或const char*
 - 通常当我们从一个const char*创建string时，指针指向的数组必须以空字符结尾，拷贝操作遇到空字符停止
@@ -1849,7 +1849,7 @@ IO库类型和头文件：
 - 与参数不同，以值方式被捕获的变量的值是在lambda创建时拷贝，而不是调用时拷贝
 - 当以引用方式捕获一个变量时，必须保证在lambda执行时变量是存在的
 - 建议尽量保持lambda的变量捕获简单化：减少捕获的数据量；避免捕获指针或引用
-- 隐式捕获：可以在捕获列表中写一个&或=，让编译器以值捕获或引用捕获的方式推断捕获列表
+- 隐式捕获：可以在捕获列表中写一个=或&，让编译器以值捕获或引用捕获的方式推断捕获列表
 - 可以混合使用隐式捕获和显式捕获，捕获列表中的第一个元素必须是一个&或=，且显式捕获与隐式捕获的捕获方式必须不同
 - 可变lambda：默认情况下，lambda不能改变以值方式捕获的变量。如果我们希望能改变它的值，则必须在参数列表之后加上关键字mutable。因此，可变lambda不能省略参数列表
 
@@ -1865,7 +1865,7 @@ IO库类型和头文件：
 
   ```cpp
   // g是一个有两个参数的可调用对象
-  auto g = bind(f, a, b, _2, c, _1);
+  auto g = bind(f, a, b, placeholders::_2, c, placeholders::_1);
   // 生成一个新的可调用对象g，它有两个参数，分别用占位_2和_1表示
   // 传递给g的参数按位置绑定到占位符
   // 调用g(X，Y)会调用f(a, b, Y, c, X)
@@ -1903,7 +1903,7 @@ IO库类型和头文件：
 
 - front_inserter - 创建一个使用push_front的插入迭代器
 
-- inserter - 创建一个使用insert的插入迭代器。此函数接受第二个参数，这个参数必须是一个指向给定容器的迭代器
+- inserter - 创建一个使用insert的插入迭代器。此函数接受第二个参数，这个参数必须是一个指向给定容器中某个有效位置的迭代器
 
   ```cpp
   // 如果it1是由inserter生成的迭代器，it2是普通迭代器，两者指向同一个元素
@@ -1923,13 +1923,13 @@ IO库类型和头文件：
 
    ```cpp
    // 使用istream_iterator从标准输入读取数据，存入一个vector
-   istream_iterator<int> in_iter(cin);
+   istream_iterator<int> cin_iter(cin);
    istream_iterator<int> eof;
-   while (in_iter != eof)
-       vec.push_back(*in_iter++);
+   while (cin_iter != eof)
+       vec.push_back(*cin_iter++);
    // 可以将上述程序重写为如下形式，这体现了istream_iterator更有用的地方
-   istream_iterator<int> in_iter(cin), eof;
-   vector<int> vec(in_iter, eof);
+   istream_iterator<int> cin_iter(cin), eof;
+   vector<int> vec(cin_iter, eof);
    ```
 
    | istream_iterator操作         | 说明                                                         |
@@ -1954,10 +1954,10 @@ IO库类型和头文件：
 
    ```cpp
    // 使用ostream_iterator输出vecotr中的元素
-   ostream_iterator<int> out_iter(cout, " ");
+   ostream_iterator<int> cout_iter(cout, " ");
    for (auto e : vec)
        *out_iter++ = e;
-   // *和++不对out_iter做任何事情，可以忽略，即，循环可以重写成下面的样子
+   // *和++不对out_iter做任何事情，可以忽略，换言之，循环可以重写成下面的样子
    for (auto e : vec)
        out_iter = e;
    // 推荐第一种写法，流迭代器的使用与其他迭代器的使用保持一致，方便修改，可读性强
@@ -2250,7 +2250,7 @@ IO库类型和头文件：
   | 桶接口                 |                                                              |
   | c.bucket_count()       | 正在使用的桶的数目                                           |
   | c.max_bucket_count()   | 容器能容纳的最多的桶的数量                                   |
-  | c.bucket_size(n)       | 第n个桶中有多少元素                                          |
+  | c.bucket_size(n)       | 下标为n的桶中有多少元素                                      |
   | c.bucket(k)            | 关键字为k的元素在哪个桶中                                    |
   | 桶迭代                 |                                                              |
   | local_iterator         | 可以用来访问桶中元素的迭代器类型                             |
@@ -2263,7 +2263,7 @@ IO库类型和头文件：
   | c.rehash(n)            | 重组存储，使得bucket_count >= n<br />且bucket_count > size / max_load_factor |
   | c.reserve(n)           | 重组存储，使得c可以保存n个元素且不必rehash                   |
 
-默认情况下，无序容器使用关键字类型的==运算符来比较元素，它们还使用一个hash<key_type>类型的对象来生成每个元素的哈希值。标准库为内置类型（包括指针)提供了hash模板。还为一些标准库类型（包括string和智能指针）定义了hash。因此，我们可以直接定义关键字是这些类型的无序容器。但是，我们不能直接定义关键字为自定义类型的无序容器。与容器不同，不能直接使用哈希模板，而必须提供我们自己的hash模板版本。
+默认情况下，无序容器使用关键字类型的==运算符来比较元素，它们还使用一个hash<key_type>类型的对象来生成每个元素的哈希值。标准库为内置类型（包括指针)提供了hash模板。还为一些标准库类型（包括string和智能指针）定义了hash。因此，我们可以直接定义关键字是这些类型的无序容器。但是，我们不能直接定义关键字为自定义类型的无序容器，而必须提供我们自己的hash模板版本。
 
 ### 动态内存
 
@@ -2375,7 +2375,7 @@ IO库类型和头文件：
 ##### 智能指针和异常
 
 - 在使用直接管理内存时，如果在new和delete之间发生异常，且异常未被捕获，则内存就永远不会被释放了
-- 如果使用智能指针管理内存，即使所在函数由于异常退出，智能指针会被销毁，从而释放资源
+- 如果使用智能指针管理内存，即使所在函数由于异常退出，智能指针也会被销毁，从而释放资源
   - 用智能指针管理那些分配了资源，而又没有定义析构函数来释放这些资源的类对象时，必须传入一个删除器(deleter)完成对指针进行的释放操作
   - 如果使用智能指针管理的资源不是new分配的内存，必须给它传递一个删除器
 
@@ -2389,7 +2389,7 @@ IO库类型和头文件：
 | unique_ptr\<T> u(q)       | 用类型为T*的内置指针q初始化u                                 |
 | unique_ptr\<T, D> u(q, d) | 用类型为T*的内置指针q初始化u，用类型为D的可调用对象d代替delete |
 | u = nullptr               | 释放u指向的对象，将u置为空                                   |
-| u.realease()              | u放弃对对象的控制权，返回指针，并将u置为空（没有释放对象）   |
+| u.release()               | u放弃对对象的控制权，返回指针，并将u置为空（没有释放对象）   |
 | u.reset()<br />u.reset(q) | 释放u指向的对象<br />如果提供了内置指针q，令u指向这个对象；否则，将u置为空 |
 
 - 一个unique_ptr“拥有”它所指的对象。当unique_ptr被销毁时，它所指的对象也被销毁
@@ -2418,7 +2418,7 @@ IO库类型和头文件：
 | w.reset()          | 将w置为空                                                    |
 | w.use_count()      | 与w共享对象的shared_ptr的数量                                |
 | w.expired()        | 若w.use_count()为0，返回ture，否则返回false                  |
-| w.lock()           | 如果w.expired()为true，返回一个空shared_ptr；否则返回一个指向w的对象的shared_ptr |
+| w.lock()           | 如果w.expired()为true，返回一个空shared_ptr；否则返回一个指向w所指对象的shared_ptr |
 
 #### 动态数组
 
