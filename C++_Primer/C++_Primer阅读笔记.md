@@ -1687,8 +1687,8 @@ IO库类型和头文件：
 
   - 所有适配器都要求容器具有添加、删除以及访问尾元素的能力，因此不能用array和forward_list来构造适配器
   - stack只要求push_back、pop_back和back操作，因此可以使用deque、list或vector来构造
-  - queue要求back、push_back、front和pop_front，因此可以使用list或deque来构造
-  - priority_queue要求front、push_back、pop_back以及随机访问能力，因此可以使用vector或deque来构造
+  - queue要求back、push_back、front和pop_front，因此可以使用deque或list来构造
+  - priority_queue要求front、push_back、pop_back以及随机访问能力，因此可以使用deque或vector来构造
 
 1. 栈适配器(stack)
 
