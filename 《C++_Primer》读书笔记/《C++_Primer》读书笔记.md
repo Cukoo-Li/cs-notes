@@ -1275,7 +1275,7 @@ IO库类型和头文件：
 | sstream sstrm;    | sstrm是一个未绑定的sstream的对象。sstream是头文件sstream中定义的一个类型 |
 | sstream sstrm(s); | sstrm是一个sstream对象，保存string s的一个拷贝，此构造函数是explicit |
 | sstrm.str()       | 返回sstrm所保存的string的拷贝                                |
-| sstrm.str(s)      | 将string s拷贝到strm中                                       |
+| sstrm.str(s)      | 将string s拷贝到sstrm中                                      |
 
 ### 顺序容器
 

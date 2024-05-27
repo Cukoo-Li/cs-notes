@@ -37,17 +37,21 @@
 
    `SHOW DATABASES`
 
-## 表
+## 表操作
 
 1. 创建表
 
-   `CREATE TABLE table_name (field_name1 datatype, field_name2 datatype, ... )`
+   `CREATE TABLE table_name (field_name datatype, ... )`
 
    - `CHARACTER SET charset_name` - 指定表采用的字符集，默认为所在数据库的字符集
    - `COLLATE collation_name` - 指定表字符集的校对规则，默认为所在数据库的字符集校对规则
    - `ENGINE engine_name` - 指定存储引擎
 
 2. 修改表
+
+   - `ALTER TABLE table_name ADD (field_name datatype [NOT NULL] [DEFAULT expr], ...)` - 添加字段
+   - `ALTER TABLE table_name MODIFY (field_name datatype [NOT NULL] [DEFAULT expr], ...)` - 修改字段
+   - `ALTER TABLE table_name DROP (field_name, ...)` - 删除字段
 
 3. 删除表
 
