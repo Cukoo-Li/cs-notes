@@ -20,41 +20,6 @@
 
   > 恢复数据库 - 在MySQL终端中执行`source xxx.sql`
 
-## 数据库操作
-
-1. 创建数据库
-
-    `CREATE DATABASE [IF NOT EXISTS] db_name`
-
-   - `CHARACTER SET charset_name` - 指定数据库采用的字符集，默认为`utf8`。
-   - `COLLATE collation_name` - 指定数据库字符集的校对规则，常用的是`utf8_bin`和`utf8_general_ci`。
-
-2. 删除数据库
-
-    `DROP DATABASE [IF EXISTS] db_name`
-
-3. 显示现有的数据库
-
-   `SHOW DATABASES`
-
-## 表操作
-
-1. 创建表
-
-   `CREATE TABLE table_name (field_name datatype, ... )`
-
-   - `CHARACTER SET charset_name` - 指定表采用的字符集，默认为所在数据库的字符集
-   - `COLLATE collation_name` - 指定表字符集的校对规则，默认为所在数据库的字符集校对规则
-   - `ENGINE engine_name` - 指定存储引擎
-
-2. 修改表
-
-   - `ALTER TABLE table_name ADD (field_name datatype [NOT NULL] [DEFAULT expr], ...)` - 添加字段
-   - `ALTER TABLE table_name MODIFY (field_name datatype [NOT NULL] [DEFAULT expr], ...)` - 修改字段
-   - `ALTER TABLE table_name DROP (field_name, ...)` - 删除字段
-
-3. 删除表
-
 ## 字段数据类型
 
 > 常用的有`int`、`double`、`decimal`、`char`、`varchar`、`text`。
@@ -99,7 +64,77 @@
    | `timestamp` | 时间戳       |
    | `year`      | 年           |
 
+## 数据库操作
+
+1. 创建数据库
+
+   ```sql
+   CREATE DATABASE [IF NOT EXISTS] db_name
+   [CHARACTER SET charset_name]
+   [COLLATE collation_name]
+   ```
+
+   - `CHARACTER SET charset_name` - 指定数据库采用的字符集，默认为`utf8`。
+   - `COLLATE collation_name` - 指定数据库字符集的校对规则，常用的是`utf8_bin`和`utf8_general_ci`。
+
+2. 删除数据库
+
+   ```sql
+   DROP DATABASE [IF EXISTS] db_name
+   ```
+
+3. 显示现有的数据库
+
+   ```sql
+   SHOW DATABASES
+   ```
+
+## 表操作
+
+1. 创建表
+
+   ```sql
+   CREATE TABLE table_name (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
+   [CHARACTER SET charset_name]
+   [COLLATE collation_name]
+   [ENGINE engine_name]
+   ```
+
+   - `CHARACTER SET charset_name` - 指定表采用的字符集，默认为所在数据库的字符集
+   - `COLLATE collation_name` - 指定表字符集的校对规则，默认为所在数据库的字符集校对规则
+   - `ENGINE engine_name` - 指定存储引擎
+
+2. 修改表
+
+   ```sql
+   # 添加字段
+   ALTER TABLE table_name ADD (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
+   # 修改字段
+   ALTER TABLE table_name MODIFY (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
+   # 删除字段
+   ALTER TABLE table_name DROP (field_name [, ...])
+   ```
+
+3. 删除表
+
 ## 增删改查
+
+insert
+
+```sql
+INSERT INTO table_name [(field_name [, ...])]
+VALUES	(value [, ...]) [, (...)]
+```
+
+update
+
+```sql
+UPDATE table_name SET field_name = expr [, ...] WHERE field_name = expr
+```
+
+delete
+
+select
 
 ## 函数
 
