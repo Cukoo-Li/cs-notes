@@ -71,7 +71,7 @@
    ```sql
    CREATE DATABASE [IF NOT EXISTS] db_name
    [CHARACTER SET charset_name]
-   [COLLATE collation_name]
+   [COLLATE collation_name];
    ```
 
    - `CHARACTER SET charset_name` - 指定数据库采用的字符集，默认为`utf8`。
@@ -80,13 +80,13 @@
 2. 删除数据库
 
    ```sql
-   DROP DATABASE [IF EXISTS] db_name
+   DROP DATABASE [IF EXISTS] db_name;
    ```
 
 3. 显示现有的数据库
 
    ```sql
-   SHOW DATABASES
+   SHOW DATABASES;
    ```
 
 ## 表操作
@@ -97,7 +97,7 @@
    CREATE TABLE table_name (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
    [CHARACTER SET charset_name]
    [COLLATE collation_name]
-   [ENGINE engine_name]
+   [ENGINE engine_name];
    ```
 
    - `CHARACTER SET charset_name` - 指定表采用的字符集，默认为所在数据库的字符集
@@ -108,33 +108,87 @@
 
    ```sql
    # 添加字段
-   ALTER TABLE table_name ADD (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
+   ALTER TABLE table_name ADD (field_name datatype [NOT NULL] [DEFAULT expr] [, ...]);
    # 修改字段
-   ALTER TABLE table_name MODIFY (field_name datatype [NOT NULL] [DEFAULT expr] [, ...])
+   ALTER TABLE table_name MODIFY (field_name datatype [NOT NULL] [DEFAULT expr] [, ...]);
    # 删除字段
-   ALTER TABLE table_name DROP (field_name [, ...])
+   ALTER TABLE table_name DROP (field_name [, ...]);
    ```
 
 3. 删除表
 
+   ```sql
+   DROP TABLE tbl_name;
+   ```
+
 ## 增删改查
 
-insert
+### 基本语法
 
-```sql
-INSERT INTO table_name [(field_name [, ...])]
-VALUES	(value [, ...]) [, (...)]
-```
+- 添加记录
 
-update
+  ```sql
+  INSERT INTO table_name field_name1, field_name2, ...
+  VALUES	(value1, value2, ...) , ...;
+  ```
 
-```sql
-UPDATE table_name SET field_name = expr [, ...] WHERE field_name = expr
-```
+- 修改记录
 
-delete
+  ```sql
+  UPDATE table_name SET field_name1 = expr1, field_name2 = expr2, ... [WHERE where_definition];
+  ```
 
-select
+- 删除记录
+
+  ```sql
+  DELETE FROM tbl_name [WHERE where_definition];
+  ```
+
+- 查询记录
+
+  ```sql
+  SELECT [DISTINCT] field_name1, field_name2, ... FROM tbl_name;
+  ```
+
+  - `DISTINCT`表示消除重复行
+  - 可以用`*`指明查询所有字段
+
+### select语句
+
+- 使用表达式对查询的字段进行运算
+
+  ```sql
+  SELECT expr1, expr2, ... FROM tbl_name;
+  ```
+
+- 使用`AS`子句对查询的字段取别名
+
+  ```sql
+  SELECT field_name1, field_name2, ... AS alias FROM tbl_name;
+  ```
+
+- 使用`WHERE`子句指定过滤条件
+
+  ```sql
+  SELECT field_name1, field_name2, ... FROM tbl_name [WHERE where_definition];
+  ```
+
+  | 运算符                                | 说明                                         |
+  | ------------------------------------- | -------------------------------------------- |
+  | `<`、`>`、`<=`、`>=`、`=`、`<>`、`!=` | 小于、大于、小于等于、大于等于、等于、不等于 |
+  | `BETWEEN ... AND ...`                 | 指定值所在区间（闭区间）                     |
+  | `IN(set)`                             | 指定值所在集合，例如`IN(100, 200)`           |
+  | `LIKE ...`、`NOT LIKE ...`            | 模糊查询，例如`LIKE 李%`表示以"李"开头的     |
+  | `IS NULL`                             | 是否为空                                     |
+  | `AND`、`OR`、`NOT`                    | 与、或、非                                   |
+
+- 使用`ORDER BY`子句对查询结果进行排序
+
+  ```sql
+  SELECT field_name1, field_name2, ... FROM tbl_name ORDER BY field_name asc|desc
+  ```
+
+  
 
 ## 函数
 
