@@ -1903,12 +1903,12 @@ IO库类型和头文件：
 
 2. ostream_iterator操作
 
-   | ostream_iterator操作              | 说明                                                         |
-   | --------------------------------- | ------------------------------------------------------------ |
-   | ostream_iterator\<T> out(os);     | out将类型为T的值写到输出流os中                               |
-   | ostream_iterator\<T> out(out, d); | out将类型为T的值写到输出流os中，每个值后面都输出一个C风格字符串d |
-   | out = val                         | 用<<运算符将val写到out所绑定的ostream中。val的类型必须与out可写的类型兼容 |
-   | *out, ++out, out++                | 这些运算符虽然存在，但不对out做任何事情，都返回out           |
+   | ostream_iterator操作             | 说明                                                         |
+   | -------------------------------- | ------------------------------------------------------------ |
+   | ostream_iterator\<T> out(os);    | out将类型为T的值写到输出流os中                               |
+   | ostream_iterator\<T> out(os, d); | out将类型为T的值写到输出流os中，每个值后面都输出一个C风格字符串d |
+   | out = val                        | 用<<运算符将val写到out所绑定的ostream中。val的类型必须与out可写的类型兼容 |
+   | *out, ++out, out++               | 这些运算符虽然存在，但不对out做任何事情，都返回out           |
 
    ```cpp
    // 使用ostream_iterator输出vecotr中的元素
@@ -3273,8 +3273,6 @@ C++11提供了一个随机数库，定义在头文件`random`中，它主要有�
 | seekp(off, from)<br />seekg(off, from) | 在一个输入流或输出流中将标记定位到from之前或之后off个字符，from可以是下列值之一：<br />- beg，偏移量相对于流开始位置<br />- cur，偏移量相对于流当前位置<br />- end，偏移量相对于流结尾位置 |
 
 编程示例(P678)
-
-
 
 ### 用于大型程序的工具
 
