@@ -1,6 +1,10 @@
 # 《现代 C++ 模板教程》
 
-模板本身不是代码，模板实例化后才有代码出现。
+## 记在前面
+
+- 模板本身不是代码，模板实例化后才有代码出现。
+- 模板就像是一门脚本语言，它指导编译器该怎么样生成代码。
+- 模板的大多数语法特性是普遍适用的，不区分函数模板、类模板、变量模板。
 
 ## 函数模板
 
@@ -179,3 +183,214 @@ int main() {
     std::cout << ret << '\n';       // 21.7
 }
 ```
+
+## 类模板
+
+### 类模板参数推导
+
+从 C++17 开始，只要传给构造函数的实参可以用来推导类模板的全部模板参数（含非类型参数），就无需显式指定类模板参数。
+
+但有时编译器推导出来的类型与我们的期望不符，此时可以定义「推导指引」。
+
+举个例子，我们要让一个类模板，如果推导为 `int`，就让它实际成为 `size_t`：
+
+```cpp
+template <typename T>
+struct Test{
+    Test(T v) : t{ v } {}
+private:
+    T t;
+};
+
+Test(int) -> Test<std::size_t>;
+
+Test t(1);      // t 是 Test<size_t>
+```
+
+如果要类模板 `Test` 推导为指针类型，就变成数组呢？
+
+```cpp
+templat e<typename T>
+Test(T*) -> Test<T[]>;
+
+char* p = nullptr;
+
+Test t(p);      // t 是 Test<char[]>
+```
+
+推导指引的语法还是简单的，如果只是涉及具体类型，那么只需要：
+
+`模板名称(类型a)->模板名称<想要让类型a被推导为的类型>`
+
+如果涉及的是一类类型，那么就需要加上 `template`，然后使用它的模板形参。
+
+---
+
+我们提一个稍微有点难度的需求：
+
+```cpp
+template <class Ty, std::size_t size>
+struct array {
+    Ty arr[size];
+};
+
+::array arr{1, 2, 3, 4, 5};     // Error!
+```
+
+类模板 `array` 同时使用了类型模板形参与非类型模板形参，保有了一个成员是数组。
+
+它无法被我们直接推导出类型，此时就需要我们自己定义推导指引。
+
+这会用到我们之前在函数模板里学习到的形参包。
+
+```cpp
+template <typename T, typename ...Args>
+array(T t, Args...) -> array<T, sizeof...(Args) + 1>;
+```
+
+原理很简单，我们要给出 `array` 的模板类型，那么就让模板形参单独写一个 `T` 占位，放到模板形参列表中，并且写一个模板类型形参包用来处理任意个参数；获取 `array` 的 `size` 也很简单，直接使用 `sizeof...` 获取形参包的元素个数，然后再 +1 ，因为先前我们用了一个模板形参占位。
+
+标准库的 `std::array` 的推导指引，原理和这个一样。
+
+### 模板模板形参
+
+> 没看懂。
+
+### 成员函数模板
+
+成员函数模板基本上和普通函数模板没多大区别，唯一需要注意的是，它大致有两类：
+
+- 类模板中的成员函数模板
+
+  ```cpp
+  template <typename T>
+  struct ClassTemplate{
+      template <typename... Args>
+      void f(Args&&... args) {}
+  };
+  ```
+
+- 普通类中的成员函数模板
+
+  ```cpp
+  struct Test{
+      template <typename... Args>
+      void f(Args&&... args){}
+  };
+  ```
+
+> 需要注意的是，以下 `ClassTemplate` 的成员函数 `f` 不是函数模板，它就是普通的成员函数。
+>
+> ```cpp
+> template <typename T>
+> struct ClassTemplate{
+>     void f(T) {}
+> };
+> ```
+
+## 变量模板
+
+变量模板是 C++14 引入的，变量模板实例化后就是一个具有静态存储期的变量，所以也不用考虑生存期的问题。
+
+在类中也可以使用变量模板，作为类的静态数据成员。
+
+```cpp
+struct Limits{
+    template<typename T>
+    static const T min; // 静态数据成员模板的声明
+};
+ 
+template<typename T>
+const T Limits::min{}; // 静态数据成员模板的定义
+```
+
+## 模板特例化
+
+在某些情况下，通用模板的定义并不适用于特定类型。对此，我们可以专门为特定类型定义一个特例化版本，这被称作「模板特例化」。
+
+模板特例化的本质是接管了编译器的工作，手动实例化一个模板。
+
+### 模板全特化
+
+模板全特化的核心语法在于 `template<>`，它表示我们将为原模板的所有模板参数提供实参。
+
+```cpp
+template<typename T>
+struct X {
+    template<typename T2>
+    void f(T2) {}
+
+    template<>
+    void f<int>(int) {            // 类内特化，对于 函数模板 f<int> 的情况
+        std::puts("f<int>(int)"); 
+    }
+};
+
+template<>
+template<>
+void X<void>::f<double>(double) { // 类外特化，对于 X<void>::f<double> 的情况
+    std::puts("X<void>::f<double>");
+}
+
+X<void> x;
+x.f(1);    // f<int>(int)
+x.f(1.2);  // X<void>::f<double>
+x.f("");
+```
+
+> 上述代码中，类内对成员函数 `f` 的特化，在 gcc 无法通过编译，根据考察，这是一个很多年前就有的 bug。
+
+### 模板偏特化
+
+模板偏特化允许我们为具有相同特征的类模板、变量模板进行定制行为。
+
+与模板全特化不同，我们不会为原模板的所有模板参数提供实参，模板偏特化后的本质还是一个模板。
+
+> 只有类模板和变量模板可以偏特化，函数模板不可以偏特化。
+
+- 类模板偏特化
+
+  ```cpp
+  template<typename T,std::size_t N>
+  struct X{
+      template<typename T_,typename T2>
+      struct Y{};
+  };
+  
+  template<>
+  template<typename T2>
+  struct X<int, 10>::Y<int, T2> {     // 对 X<int,10> 的情况下的 Y<int> 进行偏特化
+      void f()const{}
+  };
+  
+  X<int, 10>::Y<int, void>y;
+  y.f();                      // OK X<int,10> 和 Y<int> 
+  X<int, 1>::Y<int, void>y2;
+  y2.f();                     // Error! 主模板模板实参不对
+  X<int, 10>::Y<void, int>y3;
+  y3.f();                     // Error！成员函数模板模板实参不对
+  ```
+
+  > 此示例无法在 gcc 通过编译，这是编译器 bug。
+
+- 变量模板偏特化
+
+  ```cpp
+  template <typename T>
+  const char* s = "?";            // 原模板
+  
+  template <typename T>
+  const char* s<T*> = "pointer";  // 偏特化，对指针这一类类型
+  
+  template <typename T>
+  const char* s<T[]> = "array";   // 偏特化，但是只是对 T[] 这一类类型，而不是数组类型，因为 int[] 和 int[N] 不是一个类型
+  
+  std::cout << s<int> << '\n';            // ?
+  std::cout << s<int*> << '\n';           // pointer
+  std::cout << s<std::string*> << '\n';   // pointer
+  std::cout << s<int[]> << '\n';          // array
+  std::cout << s<double[]> << '\n';       // array
+  std::cout << s<int[1]> << '\n';         // ?
+  ```
+
+  
