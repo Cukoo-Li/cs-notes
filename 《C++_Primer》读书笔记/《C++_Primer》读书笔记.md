@@ -2972,7 +2972,7 @@ operator type() const;
 当模板被使用时才会进行实例化这一特性意味着，相同的实例可能出现在多个目标文件中。当两个或多个独立编译的源文件使用了相同的模板并提供了相同的模板参数时，每个文件中就都会有该模板的一个实例。在大系统中，在多个文件中实例化相同模板的额外开销可能非常严重。在C++11中，我们可以通过显式实例化(explicit instantiation)来避免这种开销。
 
 ```cpp
-// 实例化声明与定义
+// 显式实例化声明与定义
 extern template class Blob<string>;				// 声明
 template int compare(const int&, const int&);	// 定义
 ```
