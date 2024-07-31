@@ -16,7 +16,7 @@
 
   ```cpp
   template <typename T>
-  void f(T&&t){}
+  void f(T&& t){}
   
   int a = 10;
   f(a);       // a 是左值表达式，f 是 f<int&>，t 的类型是 int&
