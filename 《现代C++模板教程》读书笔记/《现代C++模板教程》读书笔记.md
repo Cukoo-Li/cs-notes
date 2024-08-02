@@ -482,3 +482,75 @@ extern template 返回类型 函数模板名<模板实参列表>(形参列表);
   std::cout << v2<1, 2, 3, 4> << '\n'; // 20
   ```
 
+## 待决名
+
+在模板（类模板和函数模板）定义中，某些构造的含义可以在不同的实例化间有所不同。特别是，类型和表达式可能会取决于类型模板形参的类型和非类型模板形参的值。
+
+```cpp
+template <typename T>
+struct X : B<T> // "B<T>" 取决于 T
+{
+    typename T::A* pa; // "T::A" 取决于 T
+    
+    void f(B<T>* pb)
+    {
+        static int i = B<T>::i; // "B<T>::i" 取决于 T
+        pb->j++; // "pb->j" 取决于 T
+    }
+};
+```
+
+- 对于非待决名，在模板定义点查找和绑定，即使在模板实例化点有更好的匹配，也保持此绑定。
+- 对于待决名，查找和绑定会推迟到得知它的模板实参之时。
+
+### 待决名的 typename 消除歧义符
+
+在模板（包括别名模版）的声明或定义中，不是当前实例化的成员且取决于某个模板形参的名字不会被认为是类型，除非使用关键字 `typename` 或它已经被设立为类型名（例如用 typedef 声明或通过用作基类名）。
+
+```cpp
+int p = 1;
+ 
+template <typename T>
+void foo(const std::vector<T> &v)
+{
+    // std::vector<T>::const_iterator 是待决名，
+    typename std::vector<T>::const_iterator it = v.begin();
+ 
+    // 下列内容因为没有 'typename' 而会被解析成
+    // 类型待决的成员变量 'const_iterator' 和某变量 'p' 的乘法。
+    // 因为在此处有一个可见的全局 'p'，所以此模板定义能编译。
+    std::vector<T>::const_iterator* p; 
+ 
+    typedef typename std::vector<T>::const_iterator iter_t;
+    iter_t * p2; // iter_t 是待决名，但已知它是类型名
+}
+ 
+int main()
+{
+    std::vector<int> v;
+    foo(v); // 模板实例化失败：类型 std::vector<int> 中没有
+            // 名字是 'const_iterator' 的成员变量
+}
+```
+
+### 待决名的 template 消除歧义符
+
+与此相似，模板定义中不是当前实例化的成员的待决名同样不被认为是模板名，除非使用消歧义关键字 `template`，或它已被设立为模板名：
+
+```cpp
+template<typename T>
+struct S{
+    template<typename U>
+    void foo() {}
+};
+ 
+template<typename T>
+void bar(){
+    S<T> s;
+    s.foo<T>();          // 错误：< 被解析为小于运算符
+    s.template foo<T>(); // OK
+}
+```
+
+> `template` 的使用比 `typename` 少，并且 `template` 只能用于 `::`、`->`、`.` 这三个运算符之后。
+
