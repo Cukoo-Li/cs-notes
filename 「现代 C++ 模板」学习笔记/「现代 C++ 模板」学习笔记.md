@@ -1,4 +1,4 @@
-# 《现代 C++ 模板教程》
+# 「现代 C++ 模板」学习笔记
 
 ## 记在前面
 
@@ -57,7 +57,7 @@
 
   > 由于存在引用折叠规则，对于类型是 `T&` 的参数，只能给它传递一个左值。
 
-### 模板非类型参数
+### 非类型模板形参
 
 非类型模板形参有众多的规则和要求，目前，我们简单认为需要参数是“常量”即可。
 
@@ -554,3 +554,143 @@ void bar(){
 
 > `template` 的使用比 `typename` 少，并且 `template` 只能用于 `::`、`->`、`.` 这三个运算符之后。
 
+## 了解 SFINAE
+
+SFINAE 是指“替换失败不是错误”（Substitution Failure Is Not An Error），具体的意思是：
+
+当模板形参被替换成显式指定的类型或推导出的类型失败时，从重载集中丢弃这个特化，而非导致编译失败。
+
+> 对函数模板参数进行两次替换（形参被模板实参替换）：
+>
+> - 在模板实参推导前，对显式指定的模板实参进行替换。
+>
+> - 在模板实参推导后，对推导出的实参和默认实参进行替换。
+
+SFINAE 特性用于模板元编程，其主要作用是：对类型模板实参进行一些约束，要求它必须具备某些特征，例如必须具有某个成员。
+
+> 使用 SFINAE 特性写出来的代码比较丑陋，可读性比较差，毕竟这个机制是编译器做的工作，不是 C++ 语言层面支持的东西。
+>
+> C++ 标准委员会也注意到了这个问题，在 C++20 版本中添加了新的特性：concept，它可以取代 SFINAE，使用起来也更加简单。
+
+## 约束与概念
+
+类模板，函数模板，以及非模板函数（通常是类模板的成员），可以与一项约束（constraint）相关联，它指定了对模板实参的一些要求，这些要求可以被用于选择最恰当的函数重载和模板特化。
+
+这些要求的具名集合被称为概念（concept）。每个概念都是一个谓词，它在编译时求值，并在将其用作约束时成为模板接口的一部分。
+
+> 换言之，具名的约束就是概念。约束和概念两个词，在很多时候是可以相互替换的，我们其实可以将无名的约束理解成无名的概念，
+
+### 定义概念
+
+```cpp
+template < 模板形参列表 >
+concept 概念名 属性 (可选) = 约束表达式;
+```
+
+定义概念时声明的“约束表达式”，只需要是可以在编译期得到 `bool` 值的表达式即可。
+
+### 使用概念
+
+我们现在需要写一个函数模板 `add`，想要要求传入的对象必须是支持 `operator+` 的，应该怎么写？
+
+```cpp
+template <typename T>
+concept addable = requires(T t) {
+    t + t;		// 需要表达式 t+t 是可以通过编译的有效表达式
+}
+
+template<addable T>
+auto add(const T& t1, const T& t2){
+    std::puts("concept +");
+    return t1 + t2;
+}
+```
+
+对于概念约束模板类型形参 `T`，要求 `T` 必须使得 `T t`、`t + t` 是合法的，如果不合法，则不会选择这个模板。
+
+我们在最开始说过：
+
+> 每个概念都是一个谓词，它在编译时求值，并在将其用作约束时成为模板接口的一部分。
+
+也就是说，我们其实可以这样：
+
+```cpp
+std::cout << std::boolalpha << addable<int> << '\n';       // true
+std::cout << std::boolalpha << addable<char[10]> << '\n';  // false
+constexpr bool r = addable<int>;                           // true
+```
+
+### requires 子句
+
+`requires` 子句用于指定对“模板实参”或“函数声明”的约束。
+
+也就是说我们多了一种使用“概念”或者说“约束”的写法：`requires 约束表达式`。
+
+> 同样，这里的“约束表达式”必须是返回 `bool` 值的常量表达式。
+
+以下是一些 `requires` 子句的使用示例：
+
+```cpp
+template <typename T>
+concept addable = requires(T t) {
+    t + t;
+};
+
+template <typename T>
+    requires std::is_same_v<T, int>
+void f1(T){}
+
+template <typename T> requires addable<T>
+void f2(T) {}
+
+template <typename T>
+void f3(T)
+    requires requires(T t) { t + t; }
+{}
+```
+
+1. `f1` 的 `requires` 子句写在 `template` 之后，它的约束是：`std::is_same_v<T, int>`，意思是要求 `T` 必须是 int 类型
+2. `f2` 的 `requires` 子句的写法和 `f1` 其实是一样的，只是没换行和空格。它使用了我们自定义的概念 `addable`，要求 `T` 必须满足 `addable`。
+3. `f3` 的 `requires` 子句在函数签名的末尾出现，有两个 `requires`，第一个 `requires` 是 `requires` 子句，第二个 `requires` 是约束表达式，它会产生一个编译期的 `bool` 值。
+
+### 约束
+
+“约束”是逻辑操作和操作数的序列，它指定了对模板实参的要求。它们可以在 `requires` 表达式中出现，也可以直接作为概念的主体。
+
+我们可以对两个约束进行两种操作：合取（conjunction）和析取（disjunction），从而产生新的约束。
+
+合取和析取与逻辑与和逻辑或的用法和含义类似，都使用 `&&` 和 `||` 运算符，都具有短路特性。
+
+- 合取
+
+  ```cpp
+  template <typename T>
+  concept SignedIntegral = std::is_integral_v<T> && std::is_signed_v<T>;
+  ```
+
+- 析取
+
+  ```cpp
+  template<typename T>
+  concept number = std::integral<T> || std::floating_point<T>;
+  ```
+
+### requires 表达式
+
+`requires` 表达式用于描述约束，是一个 `bool` 类型的纯右值表达式。
+
+`requires` 表达式的写法如下：
+
+```cpp
+requires { 要求序列 }
+requires ( 形参列表 (可选) ) { 要求序列 }
+```
+
+要求序列，是以下形式之一：
+
+- 简单要求
+- 类型要求
+- 复合要求
+- 嵌套要求
+
+> 以后用到再接着学吧。
