@@ -1,4 +1,4 @@
-# 《现代 C++ 并发编程教程》读书笔记
+# 「现代 C++ 并发编程」学习笔记
 
 ## 使用线程对象
 
@@ -182,5 +182,20 @@ void simulate_arrival() {
 }
 ```
 
-### std::future
+### 获取线程执行结果
+
+当 `std::thread` 对象所关联的线程执行结束时，我们没有办法直接获取其返回值。
+
+如果想获取返回值，我们可以使用 `std::packaged_task` 和 `std::future`。
+
+类模板 `std::packaged_task` 可以包装一个可调用对象，允许异步获取其结果，它将可调用对象的结果传递给一个 `std::future` 对象。
+
+```cpp
+std::packaged_task<int(int, int)> task([](int a, int b) { return a + b; });
+std::future<int> result = task.get_future();
+std::thread(std::move(task), 2, 3).detach();
+std::cout << "Result: " << result.get() << std::endl; // 输出 Result: 5
+```
+
+
 

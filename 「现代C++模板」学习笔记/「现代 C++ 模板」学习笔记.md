@@ -351,9 +351,9 @@ x.f("");
 - 类模板偏特化
 
   ```cpp
-  template<typename T,std::size_t N>
+  template<typename T, std::size_t N>
   struct X{
-      template<typename T_,typename T2>
+      template<typename T_, typename T2>
       struct Y{};
   };
   
