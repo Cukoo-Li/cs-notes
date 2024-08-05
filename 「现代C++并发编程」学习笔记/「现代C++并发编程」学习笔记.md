@@ -197,5 +197,28 @@ std::thread(std::move(task), 2, 3).detach();
 std::cout << "Result: " << result.get() << std::endl; // 输出 Result: 5
 ```
 
+## 原子操作
+
+原子操作即不可分割的操作，要么都完成，要么都不完成。系统中的所有线程，不可能观察到原子操作只完成了一半的情况。
+
+在 C++ 中，实现原子操作主要有两种方式：
+
+- 使用互斥量实现“逻辑上的原子操作”
+- 使用原子类型 `std::atomic`
+
+### std::atomic
+
+类模板 `std::atomic` 保证在某类型上的某些操作是原子的，其内部可能使用了 CPU 层面上的原子指令来实现，也可能使用了锁来实现，这一点可以通过成员函数 `is_lock_free` 来查询。
+
+在 C++17 中，所有原子类型都有一个 `static constexpr` 的数据成员 `is_always_lock_free`，它指明了当前环境上的原子类型 X 是否一定是无锁的。
+
+模板 `std::atomic` 可用任何满足可平凡复制的类型 `T` 实例化，可以使用 `load`、`store`、`exchange`、`compare_exchange_weak` 和 `compare_exchange_strong` 等成员函数对 `std::atomic` 进行操作。
+
+> 如果是整数类型的特化，还支持 `++`、`--`、`+=`、`-=`、`&=`、`|=`、`^=` 、`fetch_add`、`fetch_sub` 等操作方式。
+
+### std::atomic\<std::shared_ptr>
+
+若多个线程同时操作同一个 `std::shared_ptr` 对象，且这些操作使用了 `std::shared_ptr` 的非 `const` 成员函数，则将出现数据竞争，除非通过 `std::atomic<std::shared_ptr>` 的实例进行所有操作。
+
 
 
