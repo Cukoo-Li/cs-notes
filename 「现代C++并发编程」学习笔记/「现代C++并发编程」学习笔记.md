@@ -186,9 +186,11 @@ void simulate_arrival() {
 
 当 `std::thread` 对象所关联的线程执行结束时，我们没有办法直接获取其返回值。
 
-如果想获取返回值，我们可以使用 `std::packaged_task` 和 `std::future`。
+如果想获取返回值，我们可以使用 `std::packaged_task`、`std::async`、`std::future`。
 
-类模板 `std::packaged_task` 可以包装一个可调用对象，允许异步获取其结果，它将可调用对象的结果传递给一个 `std::future` 对象。
+- 类模板 `std::packaged_task` 可以包装一个可调用对象，允许异步获取其结果，它将可调用对象的结果传递给一个 `std::future` 对象。
+- 函数模板 `std::async` 用于启动一个异步任务，它接受一个可调用对象，在一个独立的线程上异步调用该对象，返回一个 `std::future` 对象。
+- 模板类 `std::future` 用于表示异步操作的结果。
 
 ```cpp
 std::packaged_task<int(int, int)> task([](int a, int b) { return a + b; });
