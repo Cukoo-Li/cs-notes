@@ -596,7 +596,7 @@ concept 概念名 属性 (可选) = 约束表达式;
 ```cpp
 template <typename T>
 concept addable = requires(T t) {
-    t + t;		// 需要表达式 t+t 是可以通过编译的有效表达式
+    t + t;		// 需要表达式 t + t 是可以通过编译的有效表达式
 }
 
 template<addable T>
@@ -649,7 +649,7 @@ void f3(T)
 {}
 ```
 
-1. `f1` 的 `requires` 子句写在 `template` 之后，它的约束是：`std::is_same_v<T, int>`，意思是要求 `T` 必须是 int 类型
+1. `f1` 的 `requires` 子句写在 `template` 之后，它的约束是：`std::is_same_v<T, int>`，意思是要求 `T` 必须是 `int` 类型
 2. `f2` 的 `requires` 子句的写法和 `f1` 其实是一样的，只是没换行和空格。它使用了我们自定义的概念 `addable`，要求 `T` 必须满足 `addable`。
 3. `f3` 的 `requires` 子句在函数签名的末尾出现，有两个 `requires`，第一个 `requires` 是 `requires` 子句，第二个 `requires` 是约束表达式，它会产生一个编译期的 `bool` 值。
 
