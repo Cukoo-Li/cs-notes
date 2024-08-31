@@ -12,7 +12,7 @@
 
 - 万能引用
 
-  “万能引用”又称转发引用，即接受左值表达式那形参类型就推导为左值引用，接受右值表达式，那就推导为右值引用。
+  “万能引用”又称转发引用，即接受左值表达式，那形参类型就推导为左值引用，接受右值表达式，那就推导为右值引用。
 
   ```cpp
   template <typename T>
@@ -44,15 +44,15 @@
   ```
 
   ```cpp
-  template <class Ty>
-  constexpr Ty&& forward(Ty& Arg) noexcept {
+  template <typename Ty>
+  constexpr Ty&& f(Ty& Arg) noexcept {
       return static_cast<Ty&&>(Arg);
   }
   
-  int a = 10;            // 不重要
-  ::forward<int>(a);     // 返回 int&&，因为 Ty 是 int，Ty&& 就是 int&&
-  ::forward<int&>(a);    // 返回 int&，因为 Ty 是 int&，Ty&& 就是 int&
-  ::forward<int&&>(a);   // 返回 int&&，因为 Ty 是 int&&，Ty&& 就是 int&&
+  int a = 10;      // 不重要
+  f<int>(a);     // 返回 int&&，因为 Ty 是 int，Ty&& 就是 int&&
+  f<int&>(a);    // 返回 int&，因为 Ty 是 int&，Ty&& 就是 int&
+  f<int&&>(a);   // 返回 int&&，因为 Ty 是 int&&，Ty&& 就是 int&&
   ```
 
   > 由于存在引用折叠规则，对于类型是 `T&` 的参数，只能给它传递一个左值。
@@ -85,7 +85,7 @@ template <typename...Args>
 void sum(Args...args) {}
 ```
 
-这样一个函数，就可以接受任意类型的任意个数的参数调用。
+这样一个函数，就可以接受任意类型的、任意个数的参数调用。
 
 `args` 是函数形参包，`Args` 是模板类型形参包，它们的名字我们可以自定义。
 
@@ -124,7 +124,7 @@ int main() {
 template <typename...Args>
 void print(const Args&...args){    // const char (&args0)[5], const int& args1, const double& args2
     using Arr = int[];
-    (void)Arr{ 0, (std::cout << args << ' ' , 0)... };		// 弃值表达式
+    (void)Arr{ 0, (std::cout << args << ' ', 0)... };		// 弃值表达式
 }
 
 int main() {
@@ -141,7 +141,8 @@ int main() {
 ```cpp
 template <typename...Args>
 void print(const Args&...args) {
-    int _[]{ (std::cout << args << ' ' ,0)... };
+    using Arr = int[];
+    (void)Arr{ 0, (std::cout << args << ' ' , 0)... };		// 弃值表达式
 }
 
 template <typename T, std::size_t N, typename...Args>
@@ -170,17 +171,17 @@ int main() {
 template <typename...Args, typename RT = std::common_type_t<Args...>>
 RT sum(const Args&...args) {
     RT _[]{ static_cast<RT>(args)... };
-    RT n{};
+    RT res{};
     for (int i = 0; i < sizeof...(args); ++i) {
-        n += _[i];
+        res += _[i];
     }
-    return n;
+    return res;
     // return std::accumulate(std::begin(_), std::end(_), RT{});  // 也可以直接调用标准库的求和函数
 }
 
 int main() {
-    double ret = sum(1, 2, 3, 4, 5, 6.7);
-    std::cout << ret << '\n';       // 21.7
+    double res = sum(1, 2, 3, 4, 5, 6.7);
+    std::cout << res << '\n';       // 21.7
 }
 ```
 
@@ -188,7 +189,7 @@ int main() {
 
 ### 类模板参数推导
 
-从 C++17 开始，只要传给构造函数的实参可以用来推导类模板的全部模板参数（含非类型参数），就无需显式指定类模板参数。
+从 C++17 开始，只要构造函数的实参可以用来推导类模板的全部模板参数（含非类型参数），就无需显式指定类模板参数。
 
 但有时编译器推导出来的类型与我们的期望不符，此时可以定义“推导指引”。
 
@@ -197,9 +198,9 @@ int main() {
 ```cpp
 template <typename T>
 struct Test{
-    Test(T v) : t{ v } {}
+    Test(T t) : t_{t} {}
 private:
-    T t;
+    T t_;
 };
 
 Test(int) -> Test<std::size_t>;
@@ -207,22 +208,10 @@ Test(int) -> Test<std::size_t>;
 Test t(1);      // t 是 Test<size_t>
 ```
 
-如果要类模板 `Test` 推导为指针类型，就变成数组呢？
+推导指引的语法还是简单的。
 
-```cpp
-templat e<typename T>
-Test(T*) -> Test<T[]>;
-
-char* p = nullptr;
-
-Test t(p);      // t 是 Test<char[]>
-```
-
-推导指引的语法还是简单的，如果只是涉及具体类型，那么只需要：
-
-`模板名称(类型a)->模板名称<想要让类型a被推导为的类型>`
-
-如果涉及的是一类类型，那么就需要加上 `template`，然后使用它的模板形参。
+- 如果只是涉及具体类型，那么只需要：`模板名称(类型a) -> 模板名称<想要让类型a被推导为的类型>`
+- 如果涉及的是一类类型，那么就需要加上 `template <typename T>`，然后使用它的模板形参。
 
 ---
 
@@ -248,7 +237,7 @@ template <typename T, typename ...Args>
 array(T t, Args...) -> array<T, sizeof...(Args) + 1>;
 ```
 
-原理很简单，我们要给出 `array` 的模板类型，那么就让模板形参单独写一个 `T` 占位，放到模板形参列表中，并且写一个模板类型形参包用来处理任意个参数；获取 `array` 的 `size` 也很简单，直接使用 `sizeof...` 获取形参包的元素个数，然后再 +1 ，因为先前我们用了一个模板形参占位。
+原理很简单，我们要给出 `array` 的模板类型，那么就让模板形参单独写一个 `T` 占位，放到模板形参列表中，并且写一个模板类型形参包用来处理任意个参数；获取 `array` 的 `size` 也很简单，直接使用 `sizeof...` 获取形参包的元素个数，然后再 `+1` ，因为先前我们用了一个模板形参占位。
 
 标准库的 `std::array` 的推导指引，原理和这个一样。
 
@@ -363,12 +352,12 @@ x.f("");
       void f()const{}
   };
   
-  X<int, 10>::Y<int, void>y;
-  y.f();                      // OK X<int,10> 和 Y<int> 
-  X<int, 1>::Y<int, void>y2;
-  y2.f();                     // Error! 主模板模板实参不对
-  X<int, 10>::Y<void, int>y3;
-  y3.f();                     // Error！成员函数模板模板实参不对
+  X<int, 10>::Y<int, void> y;
+  y.f();                      // OK
+  X<int, 1>::Y<int, void> y2;
+  y2.f();                     // Error
+  X<int, 10>::Y<void, int> y3;
+  y3.f();                     // Error
   ```
 
   > 此示例无法在 gcc 通过编译，这是编译器 bug。
@@ -406,7 +395,7 @@ x.f("");
 
   我们可以在模板定义可见的地方，使用“显式实例化定义”，让编译器在此处生成模板实例代码。这样一来，当前翻译单元就有相应的符号供外部链接了。
 
-由此可见，显式实例化可以解决模板分文件的问题。我们可以将模板声明放在头文件中，将模板定义放在源文件中，源文件中还需要提供显示实例化定义。这样，外部使用模板的翻译单元只需要包含带有模板声明的头文件，或者使用 `extern` 模板声明（显式实例化声明），就可以正常链接了。
+由此可见，显式实例化可以解决模板分文件的问题。我们可以将模板声明放在头文件中，将模板定义放在源文件中，源文件中还需要提供显式实例化定义。这样，外部使用模板的翻译单元只需要包含带有模板声明的头文件，或者使用 `extern` 模板声明（显式实例化声明），就可以正常链接了。
 
 ```cpp
 // 显式实例化定义
@@ -473,13 +462,13 @@ extern template 返回类型 函数模板名<模板实参列表>(形参列表);
   
   // 二元右折叠
   template<int...I>
-  constexpr int v = (I + ... + 10);    // 1 + (2 + (3 + (4 + 10)))
+  constexpr int v1 = (I + ... + 10);    // 1 + (2 + (3 + (4 + 10)))
   // 二元左折叠
   template<int...I>
-  constexpr int v2 = (10 + ... + I);   // (((10 + 1) + 2) + 3) + 4
+  constexpr int v2 = (10 + ... + I);    // (((10 + 1) + 2) + 3) + 4
   
-  std::cout << v<1, 2, 3, 4> << '\n';  // 20
-  std::cout << v2<1, 2, 3, 4> << '\n'; // 20
+  std::cout << v1<1, 2, 3, 4> << '\n';  // 20
+  std::cout << v2<1, 2, 3, 4> << '\n';  // 20
   ```
 
 ## 待决名
