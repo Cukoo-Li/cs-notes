@@ -441,13 +441,13 @@ extern template 返回类型 函数模板名<模板实参列表>(形参列表);
 - 一元折叠
 
   ```cpp
-  template <typename...Args>
-  void print_right(const Args&...args) {
+  template <typename... Args>
+  void print_right(const Args&... args) {
       ((std::cout << args << ' '), ...);
   }
   
   template <typename...Args>
-  void print_left(const Args&...args) {
+  void print_left(const Args&... args) {
       (..., (std::cout << args << ' '));
   }
   ```
@@ -456,15 +456,15 @@ extern template 返回类型 函数模板名<模板实参列表>(形参列表);
 
   ```cpp
   template<typename... Args>
-  void print(Args&&... args){
+  void print(const Args&... args){
       (std::cout << ... << args) << '\n';
   }
   
   // 二元右折叠
-  template<int...I>
+  template <int...I>
   constexpr int v1 = (I + ... + 10);    // 1 + (2 + (3 + (4 + 10)))
   // 二元左折叠
-  template<int...I>
+  template <int...I>
   constexpr int v2 = (10 + ... + I);    // (((10 + 1) + 2) + 3) + 4
   
   std::cout << v1<1, 2, 3, 4> << '\n';  // 20
@@ -473,7 +473,9 @@ extern template 返回类型 函数模板名<模板实参列表>(形参列表);
 
 ## 待决名
 
-在模板（类模板和函数模板）定义中，某些构造的含义可以在不同的实例化间有所不同。特别是，类型和表达式可能会取决于类型模板形参的类型和非类型模板形参的值。
+在模板的声明或定义中，某些名字的含义可以在不同的实例化间有所不同。
+
+不是当前实例化的成员且取决于某个模板形参的名字被称为“待决名”。
 
 ```cpp
 template <typename T>
@@ -494,7 +496,7 @@ struct X : B<T> // "B<T>" 取决于 T
 
 ### 待决名的 typename 消除歧义符
 
-在模板（包括别名模版）的声明或定义中，不是当前实例化的成员且取决于某个模板形参的名字不会被认为是类型，除非使用关键字 `typename` 或它已经被设立为类型名（例如用 typedef 声明或通过用作基类名）。
+待决名不会被认为是类型，除非使用关键字 `typename`，或者它已经被设立为类型名（例如用 typedef 声明或通过用作基类名）。
 
 ```cpp
 int p = 1;
@@ -522,19 +524,19 @@ int main()
 }
 ```
 
-### 待决名的 template 消除歧义符
+### 待决名的 template 消除歧义符*
 
 与此相似，模板定义中不是当前实例化的成员的待决名同样不被认为是模板名，除非使用消歧义关键字 `template`，或它已被设立为模板名：
 
 ```cpp
-template<typename T>
-struct S{
+template <typename T>
+struct S {
     template<typename U>
     void foo() {}
 };
  
-template<typename T>
-void bar(){
+template <typename T>
+void bar() {
     S<T> s;
     s.foo<T>();          // 错误：< 被解析为小于运算符
     s.template foo<T>(); // OK
@@ -567,7 +569,7 @@ SFINAE 特性用于模板元编程，其主要作用是：对类型模板实参�
 
 这些要求的具名集合被称为概念（concept）。每个概念都是一个谓词，它在编译时求值，并在将其用作约束时成为模板接口的一部分。
 
-> 换言之，具名的约束就是概念。约束和概念两个词，在很多时候是可以相互替换的，我们其实可以将无名的约束理解成无名的概念，
+> 换言之，“具名的约束就是概念”。约束和概念两个词，在很多时候是可以相互替换的，我们其实可以将无名的约束理解成无名的概念，
 
 ### 定义概念
 
@@ -597,9 +599,7 @@ auto add(const T& t1, const T& t2){
 
 对于概念约束模板类型形参 `T`，要求 `T` 必须使得 `T t`、`t + t` 是合法的，如果不合法，则不会选择这个模板。
 
-我们在最开始说过：
-
-> 每个概念都是一个谓词，它在编译时求值，并在将其用作约束时成为模板接口的一部分。
+我们在最开始说过：每个概念都是一个谓词，它在编译时求值，并在将其用作约束时成为模板接口的一部分。
 
 也就是说，我们其实可以这样：
 
@@ -638,7 +638,7 @@ void f3(T)
 {}
 ```
 
-1. `f1` 的 `requires` 子句写在 `template` 之后，它的约束是：`std::is_same_v<T, int>`，意思是要求 `T` 必须是 `int` 类型
+1. `f1` 的 `requires` 子句写在 `template` 之后，它的约束是：`std::is_same_v<T, int>`，意思是要求 `T` 必须是 `int` 类型.
 2. `f2` 的 `requires` 子句的写法和 `f1` 其实是一样的，只是没换行和空格。它使用了我们自定义的概念 `addable`，要求 `T` 必须满足 `addable`。
 3. `f3` 的 `requires` 子句在函数签名的末尾出现，有两个 `requires`，第一个 `requires` 是 `requires` 子句，第二个 `requires` 是约束表达式，它会产生一个编译期的 `bool` 值。
 
@@ -660,7 +660,7 @@ void f3(T)
 - 析取
 
   ```cpp
-  template<typename T>
+  template <typename T>
   concept number = std::integral<T> || std::floating_point<T>;
   ```
 
