@@ -23,8 +23,8 @@
 
 `std::this_thread` 这个命名空间包含了管理当前线程的函数，常用的有：
 
-- `get_id` - 返回当前线程id。
-- `sleep_for` - 使当前线程睡眠指定时间，接受一个`std::chrono`命名空间中的时间对象。
+- `get_id` - 返回当前线程 id。
+- `sleep_for` - 使当前线程睡眠指定时间，接受一个 `std::chrono` 命名空间中的时间对象。
 
 ```cpp
 int main() {
@@ -76,7 +76,7 @@ private:
 
 public:
     void set(const std::string& key, const std::string& value) {
-        std::lock_guard<std::shared_mutex> lock(mutex_);
+        std::unique_lock<std::shared_mutex> lock(mutex_);
         data_[key] = value;
     }
 
@@ -173,7 +173,7 @@ void wait_for_arrival() {
 }
 
 void simulate_arrival() {
-    std::this_thread::sleep_for(std::chrono::seconds(5)); // 模拟地铁到站，假设5秒后到达目的地
+    std::this_thread::sleep_for(std::chrono::seconds(5)); // 模拟地铁到站，假设 5 秒后到达目的地
     {
         std::lock_guard<std::mutex> lck(mtx);
         arrived = true; // 设置条件变量为 true，表示到达目的地
@@ -221,6 +221,3 @@ std::cout << "Result: " << result.get() << std::endl; // 输出 Result: 5
 ### std::atomic\<std::shared_ptr>
 
 若多个线程同时操作同一个 `std::shared_ptr` 对象，且这些操作使用了 `std::shared_ptr` 的非 `const` 成员函数，则将出现数据竞争，除非通过 `std::atomic<std::shared_ptr>` 的实例进行所有操作。
-
-
-
