@@ -3221,7 +3221,30 @@ void StrVec::emplace_back(Args&&... args) {
 | `tuple_size<tupleType>::value`               | 一个类模板，可以通过一个 `tuple` 类型来实例化。它有一个名为 `value` 的 `public constexpr static` 数据成员，类型为 `size_t`，表示给定 `tuple` 类型中成员的数量 |
 | `tuple_element<i, tupleType>::type`          | 一个类模板，可以通过一个整形常量和一个 `tuple` 类型来实例化。它有一个名为 `type` 的 `public` 类型成员，表示给定 `tuple` 类型中给定成员的类型 |
 
-#### bitset 类型（）
+#### bitset 类型
+
+- `bitset` 是一个类模板，允许我们更方便地进行位运算。
+- 与 `array` 类似，`bitset` 具有固定的大小，大小必须是一个常量表达式。
+
+| bitset 的使用                         | 说明                                                         |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `bitset<n> b;`                        | `b` 有 `n` 位，每一位均为 `0`                                |
+| `bitset<n> b(u);`                     | `b` 是 `unsigned long long` 值 `u` 的低 `n` 位的拷贝         |
+| `bitset<n> b(s, pos, m, zero, one);`  | `b` 是 `string s` 从 `pos` 开始 `m` 个字符的拷贝。`s` 只能包含字符 `zero` 或 `one` |
+| `bitset<n> b(cp, pos, m, zero, one);` | 与上一个构造函数相同，但从 `cp` 指向的字符数组中拷贝字符     |
+| `b.any()`                             | `b` 中是否存在置位的二进制位                                 |
+| `b.all()`                             | `b` 中是否所有位都置位                                       |
+| `b.none()`                            | `b` 中是否不存在置位的二进制位                               |
+| `b.count()`                           | `b` 中置位的位数                                             |
+| `b.size()`                            | `b` 中的位数                                                 |
+| `b.test(pos)`                         | `pos` 位置的位是否置位。                                     |
+| `b.set(pos, v)`                       | 将 `pos` 位置的位设置为 `bool` 值 `v`。若未传递实参，将所有位置位 |
+| `b.reset(pos)`                        | 将 `pos` 位置的位复位。若未传递实参，将所有位复位            |
+| `b.flip(pos)`                         | 改变 `pos` 位置的位的状态。若未传递实参，改变所有位的状态    |
+| `b[pos]`                              | 访问 `pos` 位置的位。如果 `b` 是 `const` 的，则返回表示是否置位的 `bool` 值 |
+| `b.to_ulong()`、`b.to_ullong`         | 以 `unsigned long` 或 `unsigned long long` 类型返回当前位模式所表示的值 |
+| `b.to_string(zero, one)`              | 以 `string` 类型返回当前位模式，字符 `zero` 和 `one` 分别用来表示 `0` 和 `1` |
+| `os << b`、`is >> b`                  | 对 `bitset` 对象进行输出、输入                               |
 
 #### 正则表达式（）
 
