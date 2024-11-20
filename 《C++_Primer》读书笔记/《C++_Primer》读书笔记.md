@@ -3587,36 +3587,45 @@ dynamic_cast<type&&>(e);		// e不能是一个左值
 
 #### 类成员指针
 
-- 成员指针是指可以指向类的非静态成员的指针。
-- 成员指针的类型囊括了类的类型以及成员的类型。
-- 当初始化一个成员指针时，我们令其指向类的某个成员，但是不指定该成员所属的对象，直到使用成员指针时，才提供成员所属的对象。
+成员指针是指可以指向类的非静态成员的指针。一般情况下，指针指向一个对象，但是成员指针指示的是类的成员，而非类的对象。成员指针的类型囊括了类的类型以及成员的类型。当初始化一个成员指针时，我们令其指向类的某个成员，但是不指定该成员所属的对象，直到使用成员指针时，才提供成员所属的对象。
+
+> 当我们初始化一个成员指针或为成员指针赋值时，该指针并没有指向任何数据。成员指针指向了成员而非该成员所属的对象，只有当解引用成员指针时我们才提供对象的信息。
 
 ##### 数据成员指针
 
-- 定义成员指针
+```cpp
+// pdata 可以指向一个常量（非常量）Screen 类型对象的 string 成员
+const string Screen::*pdata;
+// pada 指向某个非特定 Screen 类型对象的 contents 成员
+pdata = &Screen::contents;
+```
 
-  ```cpp
-  // pdata可以指向一个常量（非常量）Screen类型对象的string成员
-  const string Screen::*pdata;
-  // pada指向某个非特定Screen类型对象的contents成员
-  pdata = &Screen::contents;
-  ```
+```cpp
+Screen screen, *pScreen = &screen;
+// .* 解引用 pdata 以获得 screen 对象的 contents 成员
+auto s = myScreen.*pdata;
+// ->* 解引用 pdata 以获得 pScreen 所指对象的 contents 成员
+s = pScreen->*pdata;
+```
 
-- 使用数据成员指针
+这些运算符执行两步操作：首先解引用成员指针以得到所需成员，然后像使用普通成员访问运算符那样获取对象中的指定成员。
 
-  ```cpp
-  Screen screen, *pScreen = &screen;
-  // .*解引用pdata以获得screen对象的contents成员
-  auto s = myScreen.*pdata;
-  // ->*解引用pdata以获得pScreen所指对象的contents成员
-  s = pScreen->*pdata;
-  ```
+##### 成员函数指针
 
-  这些运算符执行两步操作：首先解引用成员指针以得到所需成员，然后像使用普通成员访问运算符那样获取对象中的指定成员。
+```cpp
+// pmf 是一个指针，它可以指向 Screen 类的、函数类型与 get_cursor 相同的函数
+auto pmf = &Screen::get_cursor;
+// Action 是一种可以指向 Screen 成员函数的指针，它接受两个 pos 实参，返回一个 char
+using Action = char (Screen::*)(Screen::pos, Screen::pos) const;
+```
 
-##### 成员函数指针()
+> 成员函数指针的一个使用案例：成员指针函数表。
 
-##### 将成员函数用作可调用对象()
+##### 将成员函数用作可调用对象
+
+要想通过一个指向成员函数的指针进行函数调用，必须首先利用 `.*` 或 `->*` 将该指针绑定到特定的对象上。因此与普通的函数指针不同，成员指针不是一个可调用对象，这样的指针不支持函数调用运算符。
+
+从指向成员函数的指针获取可调用对象的方法有：使用 `function`、使用 `mem_fn`、使用 `bind`。
 
 #### 嵌套类
 
