@@ -8,7 +8,16 @@
 
 ### 类模板
 
-51
+- 别名模板
+
+  ```cpp
+  namespace std {
+      template <typename T>
+      using add_const_t = typename add_const<T>::type;
+  }
+  ```
+
+63
 
 ## 深入了解模版
 
