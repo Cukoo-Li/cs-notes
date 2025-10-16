@@ -182,21 +182,74 @@ void simulate_arrival() {
 }
 ```
 
-### 获取线程执行结果
+### 获取异步任务返回值
 
 当 `std::thread` 对象所关联的线程执行结束时，我们没有办法直接获取其返回值。
 
 如果想获取返回值，我们可以使用 `std::packaged_task`、`std::async`、`std::future`。
 
-- 类模板 `std::packaged_task` 可以包装一个可调用对象，允许异步获取其结果，它将可调用对象的结果传递给一个 `std::future` 对象。
-- 函数模板 `std::async` 用于启动一个异步任务，它接受一个可调用对象，在一个独立的线程上异步调用该对象，返回一个 `std::future` 对象。
-- 模板类 `std::future` 用于表示异步操作的结果。
+模板类 `std::future` 用于表示异步操作的结果。
+
+#### std::async
+
+使用 `std::async` 启动一个异步任务，它会返回一个 `std::future` 对象，这个对象和任务关联，将持有最终计算出来的结果。当需要任务执行完的结果的时候，只需要调用 `get` 成员函数，就会阻塞直到 `future` 为就绪为止（即任务执行完毕），返回执行结果。`valid` 成员函数检查 `future` 当前是否关联共享状态，即是否当前关联任务。还未关联，或者任务已经执行完（调用了 `get` 或 `wait`），都会返回 `false`。
+
+与 `std::thread` 一样，`std::async` 支持任意可调用对象，以及传递调用参数。包括支持使用 `std::ref` ，以及支持只能移动的类型。
+
+`std::async` 的执行策略：
+
+- `std::launch::async` 在不同线程上执行异步任务。
+- `std::launch::deferred` 惰性求值，不创建线程，等待 `future` 对象调用 `wait` 或 `get` 成员函数的时候执行任务。
+
+而我们先前一直没有写明这个参数，是因为 `std::async` 函数模板有两个重载，不给出执行策略就是以：`std::launch::async | std::launch::deferred` 调用另一个重载版本，此策略表示由实现选择到底是否创建线程执行异步任务。典型情况是，如果系统资源充足，并且异步任务的执行不会导致性能问题，那么系统可能会选择在新线程中执行任务。但是，如果系统资源有限，或者延迟执行可以提高性能或节省资源，那么系统可能会选择延迟执行。
+
+> 如果从 `std::async` 获得的 `std::future` 没有被移动或绑定到引用，那么在完整表达式结尾，`std::future` 的析构函数将阻塞，直到到异步任务完成。因为临时对象的生存期就在这一行，而对象生存期结束就会调用调用析构函数。
+>
+> ```cpp
+> std::async(std::launch::async, []{ f(); }); // 临时量的析构函数等待 f()
+> std::async(std::launch::async, []{ g(); }); // f() 完成前不开始
+> ```
+>
+> 这并不能创建异步任务，它会阻塞，然后逐个执行。
+
+#### std::packaged_task
+
+类模板 `std::packaged_task` 可以包装任何可调用对象（与 `std::function` 类似），允许异步获取其结果，它将可调用对象的结果或所抛异常传递给一个 `std::future` 对象。
+
+它通常会和 `std::future` 一起使用，不过也可以单独使用：
 
 ```cpp
-std::packaged_task<int(int, int)> task([](int a, int b) { return a + b; });
-std::future<int> result = task.get_future();
-std::thread(std::move(task), 2, 3).detach();
-std::cout << "Result: " << result.get() << std::endl; // 输出 Result: 5
+std::packaged_task<double(int, int)> task([](int a, int b){
+    return std::pow(a, b);
+});
+task(10, 2); // 执行传递的 lambda，但无法获取返回值
+```
+
+> 它有 `operator()` 的重载，它会执行我们传递的可调用对象，不过这个重载的返回类型是 `void`，没办法获取返回值。
+
+如果想要异步的获取返回值，我们需要在调用 `operator()` 之前，让它和 `std::future` 关联，然后使用 `std::future::get`：
+
+```cpp
+std::packaged_task<double(int, int)> task([](int a, int b){
+    return std::pow(a, b);
+});
+std::future<double>future = task.get_future();
+task(10, 2); // 此处执行任务
+std::cout << future.get() << '\n'; // 不阻塞，此处获取返回值
+```
+
+如果想在线程中执行异步任务，再获取返回值，可以这么做：
+
+```cpp
+std::packaged_task<double(int, int)> task([](int a, int b){
+    return std::pow(a, b);
+});
+std::future<double> future = task.get_future();
+std::thread t{ std::move(task),10,2 }; // 任务在线程中执行
+// todo.. 幻想还有许多耗时的代码
+t.join();
+
+std::cout << future.get() << '\n'; // 并不阻塞，获取任务返回值罢了
 ```
 
 ## 原子操作
