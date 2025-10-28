@@ -7,6 +7,7 @@
 - 显式指定一个空模板实参列表（`<>`），此语法表明只有模板可以解析此次调用，但所有模板参数都应该从调用实参中推导出来。
 - 如果两个函数模板只存在尾部参数包的差别，则首选没有尾部参数包的函数模板。
 - 因为函数模板不支持偏特化，所以如果想要基于某些约束条件来改变函数实现的话，可以使用带有静态函数的类、`std::enable_if<>`、`SFINAE` 以及 `ifconstexpr` 。
+- 偏特化、SFINAE 和 `std::enable_if<>` 允许我们在启用或禁用特定的模板实现。
 
 ### 类型特征
 
@@ -57,9 +58,39 @@ Ret foo() {
 
 ### 编译期编程
 
-- - 
+- 模板提供了在编译期进行计算的能力（使用递归进行迭代和使用片特化或运算符 `?:` 来做选择）。
 
-    
+- 通过 `constexpr` 函数，能将大多数编译期计算替换为编译期上下文中可调用的“普通函数”。
+
+- 通过偏特化，可以基于某些编译期约束条件在不同的类模板实现之间进行选择。
+
+  ```cpp
+  template <int SZ, bool = isPrime(SZ)>
+  struct Helper;
+  
+  template <int SZ>
+  struct Helper<SZ, false> {
+      // ...
+  }
+  
+  template <int SZ>
+  struct Helper<SZ, true> {
+      // ...
+  }
+  ```
+
+- 可以通过 `decltype` 来 SFINAE 掉表达式。
+
+  ```cpp
+  template <typename T>
+  auto len(const T& t) -> decltype((void)(t.size()), T::size_type()) {
+      return t.size();
+  }
+  ```
+
+- 编译期 `if` 允许我们根据编译期条件来启用或者丢弃某些语句。
+
+
 
 ## 深入了解模版
 
